@@ -112,7 +112,7 @@ def step_report(ws: WS, keys: list[str] | None = None) -> str:
     keys = keys or sorted(results, key=lambda k: (step_of(k), k))
     parts = [f"<h1>{html.escape(meta.get('name', ''))} 단계별 분석 보고서</h1>",
              f"<p class='muted'>작성 {time.strftime('%Y-%m-%d %H:%M')} · 데이터 {st.get('working_shape')} · 종속변수 {st.get('target') or '-'} · "
-             f"분석 방식 {'개선(누수 방지)' if st.get('integrity_mode') == 'improved' else '기준 스크립트'}</p>"]
+             "학습형 전처리는 학습 데이터로만 적합(누수 방지)</p>"]
     src = "".join(f"<tr><td>{html.escape(s['name'])}</td><td>{s.get('rows', '')}</td><td>{s.get('cols', '')}</td><td>{s.get('encoding') or s.get('format', '')}</td><td>{s.get('hash', '')}</td></tr>" for s in st["sources"])
     parts.append(f"<h2>데이터 출처</h2><table><tr><th>파일</th><th>행</th><th>열</th><th>형식/인코딩</th><th>해시</th></tr>{src}</table>")
     from .analysis.recipe import describe

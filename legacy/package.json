@@ -1,5 +1,0 @@
-{
-  "name": "process-analysis-ui",
-  "private": true,
-  "scripts": {"build": "node --check static/app.js && node --check static/workflow.js"}
-}

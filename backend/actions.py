@@ -214,7 +214,7 @@ def s5_apply(ws: WS, p: dict, job):
     out = [B.note("결측치 처리 완료", "success"),
            B.metrics([("처리 전 크기", f"{b_shape[0]:,}×{b_shape[1]}"), ("처리 후 크기", f"{after.shape[0]:,}×{after.shape[1]}"),
                       ("대상 열 결측(전)", b_missing), ("대상 열 결측(후)", int(after[[c for c in cols if c in after]].isna().sum().sum()))])]
-    if method not in ("drop", "indicator") and ws.st.get("integrity_mode") == "improved":
+    if method not in ("drop", "indicator"):
         out.append(B.note("이 대체는 '학습형 처리'로 기록되었습니다. 화면의 탐색용 데이터에는 전체 기준으로 미리 적용하고, "
                           "모델링에서는 8단계 분할 후 학습 데이터의 값으로 다시 계산해 평가 데이터에 적용합니다(누수 방지).", "info"))
     for c in cols[:4]:
@@ -273,7 +273,7 @@ def s6_apply(ws: WS, p: dict, job):
     out.append(B.metrics([("처리 전 크기", f"{before.shape[0]:,}×{before.shape[1]}"), ("처리 후 크기", f"{after.shape[0]:,}×{after.shape[1]}")]))
     for c in cols[:6]:
         out += OL.compare_after(before[c], after[c], c)
-    if action_ != "drop" and ws.st.get("integrity_mode") == "improved":
+    if action_ != "drop":
         out.append(B.note("경계값은 모델링 시 학습 데이터에서 다시 계산합니다(누수 방지).", "info"))
     return "s6", out
 
@@ -346,7 +346,7 @@ def s8_split(ws: WS, p: dict, job):
             roles[c] = "exclude"
     method = p.get("method", "stratified" if ttype != "regression" else "random")
     tr, te, info = MD.split_data(base, tgt, feats, ttype, method, float(p.get("test_size", 0.3)), int(p.get("seed", 42)),
-                                 p.get("group_col"), p.get("time_col"), bool(p.get("dropna", ws.st.get("integrity_mode") == "legacy")))
+                                 p.get("group_col"), p.get("time_col"), bool(p.get("dropna", False)))
     ws.p.save_obj("split_idx", {"train": tr, "test": te})
     sp = {"features": feats, "method": method, "test_size": float(p.get("test_size", 0.3)), "seed": int(p.get("seed", 42)),
           "group_col": p.get("group_col"), "time_col": p.get("time_col"), "n_train": len(tr), "n_test": len(te), **info}
@@ -361,14 +361,13 @@ def s9_preprocess(ws: WS, p: dict, job):
     Xtr, Xte, ytr, yte, _ = ws.xy()
     cfg = {"scaler": p.get("scaler", "standard"), "top_n": int(p.get("top_n", 5)), "encoding": p.get("encoding", "onehot"),
            "as_categorical": p.get("as_categorical") or [], "num_impute": p.get("num_impute", "median"), "drop_binary": bool(p.get("drop_binary"))}
-    mode = ws.st.get("integrity_mode", "improved")
     learned = ws.st["learned_ops"]
-    pre = MD.build_preprocessor(cfg, learned, mode)
+    pre = MD.build_preprocessor(cfg, learned)
     if cfg["encoding"] == "target":
         pre.fit(Xtr, ytr)
-        blocks = MD.preprocess_blocks(pre, Xtr, Xte, cfg, mode, learned) if False else [B.note("타깃 인코딩은 교차 적합되므로 미리보기 대신 모델 학습 시 적용됩니다.", "info")]
+        blocks = [B.note("타깃 인코딩은 교차 적합되므로 미리보기 대신 모델 학습 시 적용됩니다.", "info")]
     else:
-        blocks = MD.preprocess_blocks(pre, Xtr, Xte, cfg, mode, learned)
+        blocks = MD.preprocess_blocks(pre, Xtr, Xte, cfg, learned)
     ws.update(preprocess=cfg, models=[], best_model=None)
     ws.mark_change(9, "모델링 전처리 설정")
     return "s9", blocks
@@ -377,7 +376,7 @@ def s9_preprocess(ws: WS, p: dict, job):
 # ====================================================== 10단계
 def get_pre(ws: WS):
     cfg = ws.st.get("preprocess") or {"scaler": "standard", "top_n": 5, "encoding": "onehot"}
-    return MD.build_preprocessor(cfg, ws.st["learned_ops"], ws.st.get("integrity_mode", "improved"))
+    return MD.build_preprocessor(cfg, ws.st["learned_ops"])
 
 
 @action("s10_train", mutating=True)
@@ -395,7 +394,7 @@ def s10_train(ws: WS, p: dict, job):
         pass
     out = MD.train_models(get_pre(ws), keys, Xtr, ytr, Xte, yte, ttype, classes, st["split"]["method"], groups,
                           int(p.get("folds", 5)), int(st["split"].get("seed", 42)), bool(p.get("tune")), int(p.get("n_iter", 15)),
-                          p.get("select_metric"), st.get("integrity_mode", "improved"), bool(p.get("class_weight")),
+                          p.get("select_metric"), bool(p.get("class_weight")),
                           progress=job.progress, cancelled=job.is_cancelled)
     need(out["results"], "학습된 모델이 없습니다.")
     summary = []

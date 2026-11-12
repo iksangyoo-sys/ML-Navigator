@@ -221,7 +221,6 @@ def default_state() -> dict:
         "preprocess": None,
         "models": [],             # 학습된 모델 요약
         "best_model": None,
-        "integrity_mode": "improved",  # improved | legacy
         "data_version": 0,
         "model_version": 0,
         "results_meta": {},

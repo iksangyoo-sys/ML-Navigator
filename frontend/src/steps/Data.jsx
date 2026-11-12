@@ -202,7 +202,7 @@ export function Step2() {
                   <Radio value={how} onChange={setHow} options={[{ value: 'inner', label: 'inner' }, { value: 'left', label: 'left' }, { value: 'right', label: 'right' }, { value: 'outer', label: 'outer' }]} />
                 </Field>
                 {chosen.slice(1).map((s, i) => (
-                  <Field key={s.id} label={`${chosen[0]?.name} ⟷ ${s.name} 결합 키`} hint="비워 두면 공통 열 전체를 키로 사용합니다(기준 스크립트 방식).">
+                  <Field key={s.id} label={`${chosen[0]?.name} ⟷ ${s.name} 결합 키`} hint="비워 두면 공통 열 전체를 키로 사용합니다.">
                     <KeyPicker pid={pid} a={chosen[0]} b={s} value={keys[i] || []} onChange={(v) => { const k = [...keys]; k[i] = v; setKeys(k) }} />
                   </Field>
                 ))}

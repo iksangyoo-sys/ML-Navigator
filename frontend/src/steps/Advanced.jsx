@@ -172,7 +172,7 @@ export function Step14() {
               </Field>
             )}
             {isClf && <Field label="결과 클래스 (확률 효과)"><Select value={oc} onChange={setOc} options={summary.classes || []} placeholder={`기본: ${summary.classes?.at(-1)}`} /></Field>}
-            <Check checked={std} onChange={setStd} label="표준화 단위로 추정 (기준 스크립트 방식)" />
+            <Check checked={std} onChange={setStd} label="표준화 단위로 추정 (1 표준편차당 효과)" />
             <Check checked={dml} onChange={setDml} label="이중 머신러닝(DML)로 교차 확인" />
           </div>
           <Field label={`통제(교란) 변수 ${controls.length}개`} hint="처치와 결과 모두에 영향을 주는 변수. 처치 이후에 정해지는 변수는 넣지 마세요.">

@@ -132,9 +132,6 @@ def rename_project(pid):
     body = request.get_json(silent=True) or {}
     if body.get("name"):
         ws.p.rename(body["name"][:80])
-    if body.get("integrity_mode") in ("improved", "legacy"):
-        ws.update(integrity_mode=body["integrity_mode"], models=[], best_model=None)
-        ws.mark_change(4, "분석 방식: " + ("개선(누수 방지)" if body["integrity_mode"] == "improved" else "기준 스크립트"))
     return ok(ws.summary())
 
 

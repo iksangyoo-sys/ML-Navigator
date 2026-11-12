@@ -173,7 +173,7 @@ def select_categorical(X):
 SCALERS = {"standard": StandardScaler, "robust": RobustScaler, "minmax": MinMaxScaler}
 
 
-def build_preprocessor(cfg: dict, learned_ops: list[dict], mode: str) -> Pipeline:
+def build_preprocessor(cfg: dict, learned_ops: list[dict]) -> Pipeline:
     scaler = cfg.get("scaler", "standard")
     num_steps = [("impute", SimpleImputer(strategy=cfg.get("num_impute", "median")))]
     if scaler in SCALERS:
@@ -188,7 +188,7 @@ def build_preprocessor(cfg: dict, learned_ops: list[dict], mode: str) -> Pipelin
     ct = ColumnTransformer([("num", Pipeline(num_steps), select_numeric), ("cat", Pipeline(cat_steps), select_categorical)],
                            verbose_feature_names_out=False)
     steps = []
-    if mode == "improved" and learned_ops:
+    if learned_ops:
         steps.append(("learned", LearnedOps(learned_ops)))
     steps += [("cast", Caster(cfg.get("as_categorical") or [])), ("columns", ct)]
     pipe = Pipeline(steps)
@@ -196,7 +196,7 @@ def build_preprocessor(cfg: dict, learned_ops: list[dict], mode: str) -> Pipelin
     return pipe
 
 
-def preprocess_blocks(pre: Pipeline, Xtr: pd.DataFrame, Xte: pd.DataFrame, cfg: dict, mode: str, learned: list) -> list:
+def preprocess_blocks(pre: Pipeline, Xtr: pd.DataFrame, Xte: pd.DataFrame, cfg: dict, learned: list) -> list:
     t0 = time.time()
     Ptr = pre.fit_transform(Xtr)
     Pte = pre.transform(Xte)
@@ -210,7 +210,7 @@ def preprocess_blocks(pre: Pipeline, Xtr: pd.DataFrame, Xte: pd.DataFrame, cfg: 
     out = [B.metrics([("원 특징", Xtr.shape[1]), ("연속형", len(num)), ("범주형", len(cat)), ("전처리 후 특징", Ptr.shape[1]),
                       ("처리 시간(초)", round(time.time() - t0, 2))])]
     steps = []
-    if mode == "improved" and learned:
+    if learned:
         from .recipe import describe_learned
         steps += [f"학습형 처리(학습 데이터로 적합): {describe_learned(o)}" for o in learned]
     steps.append(f"연속형: 잔여 결측 {cfg.get('num_impute', 'median')} 대체 → {({'standard': '표준화(평균0·표준편차1)', 'robust': '강건 스케일(중앙값·IQR)', 'minmax': '0~1 정규화'}).get(cfg.get('scaler', 'standard'), '스케일 없음')}")
@@ -221,8 +221,7 @@ def preprocess_blocks(pre: Pipeline, Xtr: pd.DataFrame, Xte: pd.DataFrame, cfg: 
     out.append(B.table(pd.DataFrame(rows), "특징별 전처리 결과 요약"))
     out.append(B.interpret(
         "모든 기준값(평균·표준편차·상위 범주·대체값)은 학습 데이터에서만 계산하고 평가 데이터에는 그 값을 그대로 적용합니다. "
-        "그래서 평가 데이터의 평균이 정확히 0이 아니어도 정상입니다. 평가 데이터에서 다시 계산하면 평가 정보가 학습에 새어 들어가 성능이 부풀려집니다. "
-        + ("현재 '기준 스크립트 방식'이 선택되어 5·6단계 처리가 분할 전 전체 데이터에 적용되어 있습니다. " if mode == "legacy" else "")))
+        "그래서 평가 데이터의 평균이 정확히 0이 아니어도 정상입니다. 평가 데이터에서 다시 계산하면 평가 정보가 학습에 새어 들어가 성능이 부풀려집니다."))
     return out
 
 
@@ -396,7 +395,7 @@ def predict_with(pipe, X, ttype):
 
 def train_models(pre: Pipeline, keys: list[str], Xtr, ytr, Xte, yte, ttype: str, classes: list, split_method: str,
                  groups=None, folds: int = 5, seed: int = 42, tune: bool = False, n_iter: int = 15,
-                 select_metric: str | None = None, mode: str = "improved", class_weight: bool = False,
+                 select_metric: str | None = None, class_weight: bool = False,
                  progress=None, cancelled=None) -> dict:
     cat = catalog(ttype)
     k = len(classes) if classes else 0
@@ -469,7 +468,7 @@ def train_models(pre: Pipeline, keys: list[str], Xtr, ytr, Xte, yte, ttype: str,
     cands = [r for r in results.values() if r["key"] != "baseline"] or list(results.values())
 
     def score(r):
-        if mode == "improved" and sel in r["cv"]:
+        if sel in r["cv"]:
             v = r["cv"][sel]["mean"]
         else:
             v = r["test"].get(sel, r["test"].get("AUC", r["test"].get("Accuracy")))
@@ -479,7 +478,7 @@ def train_models(pre: Pipeline, keys: list[str], Xtr, ytr, Xte, yte, ttype: str,
 
     best = max(cands, key=score)["key"] if cands else None
     return {"results": results, "best": best, "select_metric": sel, "folds": folds,
-            "selected_by": "교차검증" if mode == "improved" else "평가 데이터(기준 스크립트 방식)"}
+            "selected_by": "교차검증"}
 
 
 def training_blocks(out: dict, ttype: str, classes: list) -> list:

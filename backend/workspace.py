@@ -130,7 +130,7 @@ class WS:
         return self.cached("view", lambda: R.view(self.working(), learned))
 
     def modeling_base(self) -> pd.DataFrame:
-        return self.view() if self.st.get("integrity_mode") == "legacy" else self.working()
+        return self.working()
 
     # ------------------------------------------------ 역할
     def features(self) -> list[str]:
@@ -236,7 +236,7 @@ class WS:
             "learned_ops": [{"index": i, "text": describe(op), "op": op["op"]} for i, op in enumerate(st["learned_ops"])],
             "split": {k: v for k, v in (st.get("split") or {}).items()} if st.get("split") else None,
             "preprocess": st.get("preprocess"), "models": st.get("models"), "best_model": st.get("best_model"),
-            "integrity_mode": st.get("integrity_mode"), "results": results, "steps": steps,
+            "results": results, "steps": steps,
             "history": st["history"][-30:], "report_items": st.get("report_items", []),
             "newdata": st.get("newdata", []),
         }

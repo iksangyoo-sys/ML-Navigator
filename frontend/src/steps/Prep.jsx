@@ -41,7 +41,7 @@ export function Step5() {
             {method === 'knn' && <Field label="이웃 수 k"><Num value={k} onChange={setK} min={1} step={1} /></Field>}
             <p className="muted small">
               {method === 'drop' ? '행 삭제는 전체 데이터에 바로 적용됩니다.' : method === 'indicator' ? '결측 여부를 새 0/1 열로 남깁니다. 대체와 함께 쓰면 결측의 정보를 보존합니다.' :
-                summary.integrity_mode === 'improved' ? '대체값은 모델링 때 학습 데이터에서만 계산해 평가 데이터에 적용합니다(누수 방지). 화면의 탐색 결과에는 전체 기준으로 미리 반영합니다.' : '기준 스크립트 방식: 전체 데이터에서 계산한 값으로 대체합니다.'}
+                '대체값은 모델링 때 학습 데이터에서만 계산해 평가 데이터에 적용합니다(누수 방지). 화면의 탐색 결과에는 전체 기준으로 미리 반영합니다.'}
             </p>
           </div>
         </Grid>

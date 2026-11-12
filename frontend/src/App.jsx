@@ -113,9 +113,6 @@ function Workspace({ pid, onBack, auth }) {
   if (!summary) return <div className="loading">불러오는 중…</div>
   const cur = STEPS.find((s) => s.id === step) || STEPS[0]
   const Comp = cur.comp
-  const setMode = async (m) => {
-    setSummary(await api.patch(`/projects/${pid}`, { integrity_mode: m }))
-  }
   const rename = async () => {
     const n = window.prompt('프로젝트 이름', summary.name)
     if (n) setSummary(await api.patch(`/projects/${pid}`, { name: n }))
@@ -151,10 +148,6 @@ function Workspace({ pid, onBack, auth }) {
             <div className="ws-status">
               <div className="chip">{summary.working_shape ? `${summary.working_shape[0].toLocaleString()}행 × ${summary.working_shape[1]}열` : '데이터 없음'}</div>
               <div className="chip">타깃 {summary.target || '-'}</div>
-              <div className="mode" title="개선 방식: 결측 대체·이상치 기준을 분할 후 학습 데이터로만 계산하고, 최적 모델을 교차검증으로 선택합니다. 기준 스크립트 방식: 첨부 스크립트처럼 전체 데이터에 적용하고 평가 데이터로 최적 모델을 고릅니다.">
-                <button className={summary.integrity_mode === 'improved' ? 'on' : ''} onClick={() => setMode('improved')}>개선 방식</button>
-                <button className={summary.integrity_mode === 'legacy' ? 'on' : ''} onClick={() => setMode('legacy')}>기준 스크립트 방식</button>
-              </div>
             </div>
           </header>
           <div className="content">

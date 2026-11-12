@@ -15,7 +15,7 @@ export function Step8() {
   const [seed, setSeed] = useState(sp?.seed ?? 42)
   const [group, setGroup] = useState(sp?.group_col || '')
   const [time, setTime] = useState(sp?.time_col || '')
-  const [dropna, setDropna] = useState(summary.integrity_mode === 'legacy')
+  const [dropna, setDropna] = useState(false)
   const pool = c.all.filter((x) => x !== summary.target)
   return (
     <>
@@ -36,7 +36,7 @@ export function Step8() {
               <input type="range" min={0.1} max={0.5} step={0.05} value={size} onChange={(e) => setSize(Number(e.target.value))} />
             </Field>
             <Field label="Random seed"><Num value={seed} onChange={setSeed} step={1} /></Field>
-            <Check checked={dropna} onChange={setDropna} label="독립변수 결측 행 모두 삭제 (기준 스크립트의 dropna)" />
+            <Check checked={dropna} onChange={setDropna} label="독립변수 결측 행 모두 삭제 (기본은 파이프라인에서 대체)" />
           </div>
           <div className="explain-box">
             <b>분할 방식 고르기</b>
