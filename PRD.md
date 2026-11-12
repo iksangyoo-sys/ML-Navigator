@@ -149,7 +149,7 @@
 
 - 백엔드: Python 3.12, Flask(REST API), pandas, scikit-learn, statsmodels, scipy, DoWhy, SHAP, XGBoost·LightGBM(선택), SQLite(메타데이터), 파일 저장소.
 - 프런트엔드: React + Vite(Node.js 빌드), Plotly.js 차트, 한국어 UI. 빌드 결과를 Flask가 함께 제공해 배포는 하나의 서비스로 한다.
-- 배포: 로컬(Windows) 실행 스크립트와 Render. Render는 영속 디스크를 사용한다(무료 플랜은 재시작 시 데이터가 지워지므로 유료 디스크 권장).
+- 배포: 로컬(Windows) 실행 스크립트와 Render 무료 플랜. 영속 디스크가 없어 재시작·15분 미사용 시 데이터가 지워지며, 화면 상단에 이를 안내한다(2026-11-12 결정).
 - 무거운 선택 패키지(DoWhy·SHAP·LightGBM·DiCE)가 없으면 해당 기능만 비활성화하고 설치 안내를 표시한다.
 
 ## 8. 기존 코드 처리

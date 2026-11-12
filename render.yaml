@@ -2,25 +2,24 @@ services:
   - type: web
     name: ml-automation-web
     runtime: python
-    plan: starter            # 영속 디스크는 유료 플랜에서만 사용할 수 있습니다
+    plan: free
     buildCommand: pip install -r requirements.txt && cd frontend && npm ci && npm run build
     # 작업 상태를 메모리에 두므로 워커는 1개, 스레드로 동시 요청을 처리합니다
-    startCommand: gunicorn --workers 1 --threads 8 --timeout 900 --bind 0.0.0.0:$PORT backend.app:app
+    startCommand: gunicorn --workers 1 --threads 4 --timeout 900 --bind 0.0.0.0:$PORT backend.app:app
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.10
+      # 무료 플랜은 영속 디스크가 없어 재시작·재배포·15분 미사용 시 데이터가 지워집니다
       - key: ANALYSIS_HOME
-        value: /var/data/instance
+        value: /tmp/ml-automation
       - key: ANALYSIS_DATA
-        value: /var/data/data
+        value: /tmp/ml-automation-data
+      - key: EPHEMERAL_STORAGE
+        value: "1"
       - key: APP_PASSWORD
         generateValue: true
       - key: SECRET_KEY
         generateValue: true
       - key: OPENAI_API_KEY
         sync: false
-    disk:
-      name: analysis-data
-      mountPath: /var/data
-      sizeGB: 5

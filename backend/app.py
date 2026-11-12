@@ -83,7 +83,8 @@ def too_big(e):
 # ------------------------------------------------------------- 인증
 @app.get("/api/auth")
 def auth_state():
-    return ok({"required": bool(PASSWORD), "authed": (not PASSWORD) or bool(session.get("auth")), "ai": ai.available()})
+    return ok({"required": bool(PASSWORD), "authed": (not PASSWORD) or bool(session.get("auth")), "ai": ai.available(),
+               "ephemeral": bool(os.environ.get("EPHEMERAL_STORAGE"))})
 
 
 @app.post("/api/login")

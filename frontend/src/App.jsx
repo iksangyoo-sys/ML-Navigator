@@ -52,6 +52,12 @@ function Projects({ onOpen, auth }) {
         {auth?.required && <button className="ghost" onClick={() => api.post('/logout').then(() => location.reload())}>로그아웃</button>}
       </header>
       <main className="projects-main">
+        {auth?.ephemeral && (
+          <div className="note warn">
+            무료 서버에서 실행 중입니다. 서버가 재시작되거나 15분 이상 사용하지 않으면 업로드한 데이터와 분석 결과가 모두 지워집니다.
+            필요한 결과는 보고서(PDF)와 CSV로 바로 내려받아 두세요.
+          </div>
+        )}
         <section className="hero">
           <h1>데이터가 바뀌어도, 분석 흐름은 그대로</h1>
           <p>불러오기부터 결합·파생변수·결측·이상치·EDA·모델링·설명 가능성·DoWhy 인과분석·Counterfactual·신규 데이터 예측까지 16단계를 순서대로 진행합니다.</p>
