@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ kind }} · 분석 결과{% endblock %}
+{% block body %}
+<div class="intro"><div><p class="muted">{{ project }} / {{ run.id }}</p><h1>{{ kind }}</h1></div><span class="status {{ run.state }}">{{ {'complete':'완료','queued':'대기','running':'실행 중','failed':'실패','cancelled':'취소','interrupted':'중단'}.get(run.state,run.state) }}</span></div>
+{% if run.state in ['queued','running'] %}<div data-refresh="2500" class="card">분석을 실행 중입니다. 결과는 자동으로 표시됩니다.</div>{% endif %}
+{% if run.error %}<section class="card error"><h2>실행 오류</h2><p>{{ run.error }}</p></section>{% endif %}
+<form class="inline actions" method="post" action="{{ url_for('action', project=project,run_id=run.id) }}">
+{% if run.state in ['queued','running'] %}<button class="secondary" name="operation" value="cancel">취소</button>{% else %}<button class="secondary" name="operation" value="retry">동일 설정으로 재실행</button>{% endif %}
+</form>
+{% if result %}
+<div class="inline actions">{% for file in files %}<a class="secondary button" href="{{ url_for('download',project=project,run_id=run.id,name=file) }}">{{ file }}</a>{% endfor %}</div>
+{% for chart in charts %}
+<section class="card"><h2>{{ chart.x }}{% if chart.y %} · {{ chart.y }}{% endif %}</h2><div class="chart" aria-label="분석 차트"></div><script type="application/json" class="chart-data">{{ chart|tojson }}</script></section>
+{% endfor %}
+<section class="card"><h2>근거 및 실행 결과</h2>
+{% for section,value in sections %}<details {% if loop.first %}open{% endif %}><summary>{{ {'input':'원본 버전','rows':'행 수','columns':'열 목록','preprocessing':'전처리 진단','eda':'EDA','model':'검증 지표','spc':'SPC','design':'실험 설계','batch':'배치 지표','doe':'실험 분석'}.get(section,section) }}</summary><pre>{{ value }}</pre></details>{% endfor %}
+</section>
+{% if not run.approved %}
+<section class="card"><h2>검토 및 승인</h2>
+<div class="inline"><button class="secondary" type="button" id="draft-report" data-url="{{ url_for('draft_run',project=project,run_id=run.id) }}">GPT-4o mini 보고서 초안</button></div>
+<p class="small muted">실행 결과의 집계와 분석 목적을 OpenAI에 보냅니다. 초안을 검토하고 편집한 뒤 승인하세요.</p>
+<p id="draft-status" role="status"></p>
+<form id="approval-form" method="post" action="{{ url_for('action',project=project,run_id=run.id) }}">
+<div class="approval">{% for name,label in [('decision','의사결정 요청'),('kpi','KPI 및 기준 대비 차이'),('limitations','한계와 불확실성'),('recommendation','권고 조치'),('owner','담당'),('deadline','기한')] %}<label>{{ label }}<textarea name="{{ name }}" rows="2"></textarea></label>{% endfor %}</div>
+<button class="primary" name="operation" value="approve">승인하고 보고서에 추가</button>
+</form>
+</section>
+{% else %}<section class="card"><p>승인 완료</p><a href="{{ url_for('report',project=project) }}">경영 보고서 열기</a></section>{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}경영 보고서 · {{ project }}{% endblock %}
+{% block body %}
+{% set report_fields = [('decision','의사결정 요청'),('kpi','KPI 및 기준 대비 차이'),('limitations','한계와 불확실성'),('recommendation','권고 조치'),('owner','담당'),('deadline','기한')] %}
+<div class="intro"><div><p class="muted">{{ project }}</p><h1>경영 보고서</h1></div><button type="button" class="secondary no-print" id="print-report">PDF로 저장 / 인쇄</button></div>
+{% if snapshot %}<p class="muted">확정본 {{ snapshot.created[:19] }} UTC · {{ snapshot.id }}</p>
+{% else %}
+{% if records %}
+<section class="card no-print"><h2>경영 요약</h2>
+<button class="secondary" type="button" id="draft-report" data-url="{{ url_for('draft_project',project=project) }}">GPT-4o mini 종합 초안</button>
+<p class="small muted">승인된 실행의 지표와 승인 문안을 OpenAI에 보냅니다.</p>
+<p id="draft-status" role="status"></p>
+<form id="approval-form" method="post" action="{{ url_for('save_report',project=project) }}">
+<div class="approval">{% for key,label in report_fields %}<label>{{ label }}<textarea name="{{ key }}" rows="3"></textarea></label>{% endfor %}</div>
+<button class="primary">보고서 확정본 저장</button></form></section>
+{% endif %}
+{% if snapshots %}<section class="card no-print"><h2>보고서 확정본</h2><div class="history">{% for saved in snapshots %}<a href="{{ url_for('saved_report',project=project,identifier=saved.id) }}">{{ saved.created[:19] }} UTC · {{ saved.id[:8] }}</a>{% endfor %}</div></section>{% endif %}
+{% endif %}
+{% if executive and executive.values()|select|list %}
+<article class="card report-item"><h2>경영 요약</h2><dl>
+{% for key,label in report_fields %}{% if executive[key] %}<dt>{{ label }}</dt><dd>{{ executive[key] }}</dd>{% endif %}{% endfor %}
+</dl></article>
+{% endif %}
+{% if not records %}<section class="card"><p class="muted">승인된 분석이 없습니다.</p></section>{% endif %}
+{% for run,narrative,metrics in records %}
+<article class="card report-item">
+<h2>{{ kinds[run.kind] }}</h2>
+<dl>{% for key,label in report_fields %}<dt>{{ label }}</dt><dd>{{ narrative[key] or '미기록' }}</dd>{% endfor %}</dl>
+{% if metrics %}<table><tbody>{% for label,value in metrics.items() %}<tr><th scope="row">{{ label }}</th><td>{{ value if value is not none else '미확인' }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+<p class="muted small">승인 {{ run.approved[:19] }} UTC · <a href="{{ url_for('detail',project=project,run_id=run.id) }}">근거 실행 {{ run.id }}</a></p>
+</article>
+{% endfor %}
+{% endblock %}

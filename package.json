@@ -1,0 +1,9 @@
+{
+  "name": "ml-automation-root",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "test": "python -m tests.test_flow"
+  }
+}

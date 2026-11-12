@@ -1,0 +1,17 @@
+Flask>=3.1,<4
+numpy>=2,<3
+pandas>=2.2,<4
+scipy>=1.13,<2
+scikit-learn>=1.6,<2
+statsmodels>=0.14
+plotly>=5.24
+xgboost>=2.1
+lightgbm>=4.5
+shap>=0.46
+dowhy>=0.12
+networkx>=3.3
+openpyxl>=3.1,<4
+pyarrow>=17
+joblib>=1.4
+gunicorn>=23
+openai>=1.75

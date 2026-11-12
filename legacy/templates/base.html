@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}공정 데이터 분석{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+<script src="{{ url_for('static', filename='workflow.js') }}" defer></script>
+</head>
+<body>
+<header><div class="shell nav"><a class="brand" href="{{ url_for('workspace',project=project) }}">공정 데이터 분석</a><nav><a href="{{ url_for('workspace',project=project) }}">작업공간</a><a href="{{ url_for('report',project=project) }}">경영 보고서</a></nav></div></header>
+<main class="shell">{% block body %}{% endblock %}</main>
+</body>
+</html>

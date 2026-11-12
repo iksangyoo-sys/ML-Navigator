@@ -1,0 +1,9 @@
+.venv/
+.vendor/
+__pycache__/
+instance/
+node_modules/
+frontend/dist/
+data/
+legacy/instance/
+*.pyc

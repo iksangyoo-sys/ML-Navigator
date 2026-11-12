@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: ml-automation-web
+    runtime: python
+    plan: starter            # 영속 디스크는 유료 플랜에서만 사용할 수 있습니다
+    buildCommand: pip install -r requirements.txt && cd frontend && npm ci && npm run build
+    # 작업 상태를 메모리에 두므로 워커는 1개, 스레드로 동시 요청을 처리합니다
+    startCommand: gunicorn --workers 1 --threads 8 --timeout 900 --bind 0.0.0.0:$PORT backend.app:app
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: ANALYSIS_HOME
+        value: /var/data/instance
+      - key: ANALYSIS_DATA
+        value: /var/data/data
+      - key: APP_PASSWORD
+        generateValue: true
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: analysis-data
+      mountPath: /var/data
+      sizeGB: 5
