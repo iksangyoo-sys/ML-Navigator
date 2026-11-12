@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ml-automation-web
+    name: ml-navigator
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt && cd frontend && npm ci && npm run build
